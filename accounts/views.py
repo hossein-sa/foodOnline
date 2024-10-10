@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from vendor.forms import VendorForm
 from .forms import UserForm
 from .models import User, UserProfile
-from .utils import detectUser
+from .utils import detectUser, send_verification_email
 
 
 # Restrict the vendor from accessing the customer page
@@ -23,6 +23,7 @@ def check_role_customer(user):
         return True
     else:
         raise PermissionDenied
+
 
 def registerUser(request):
     if request.user.is_authenticated:
@@ -48,6 +49,10 @@ def registerUser(request):
                                             password=password)
             user.role = User.CUSTOMER
             user.save()
+
+            # Send verification email
+            send_verification_email(request, user)
+
             messages.success(request, 'Your account has been registered successfully!')
             return redirect('registerUser')
         else:
@@ -82,6 +87,10 @@ def registerVendor(request):
             user_profile = UserProfile.objects.get(user=user)
             vendor.user_profile = user_profile
             vendor.save()
+
+            # Send verification email
+            send_verification_email(request, user)
+
             messages.success(request, 'Your account has been registered successfully! Please wait for approval.')
             return redirect('registerVendor')
         else:
@@ -100,6 +109,12 @@ def registerVendor(request):
     }
 
     return render(request, 'accounts/registerVendor.html', context)
+
+
+def activate(request, uidb64, token):
+    #Activate the user by setting the is_active status to True
+
+    return
 
 
 def login(request):
